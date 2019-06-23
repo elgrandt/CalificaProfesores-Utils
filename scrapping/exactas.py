@@ -11,6 +11,7 @@ import time
 base = 'http://encuestas_finales.exactas.uba.ar/'
 subjects = set()
 
+
 def procesarPeriodos():
     url = 'http://encuestas_finales.exactas.uba.ar/periodos.html'
     page = getPage(url)
@@ -18,6 +19,7 @@ def procesarPeriodos():
         td = tr.select('td')[1]
         href = td.a.attrs["href"]
         processCuat(base+href)
+
 
 def processCuat(url):
     cuatid = int(re.search(r'\d+', url).group())
@@ -50,6 +52,7 @@ def processCuat(url):
             subjectName = unicodedata.normalize('NFKD', unicodeSubjectName).encode('ascii','ignore')
             subjects.add(subjectName)
     driver.close()
+
 
 if __name__ == '__main__':
     procesarPeriodos()
