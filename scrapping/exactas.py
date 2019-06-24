@@ -9,7 +9,8 @@ import json
 import time
 
 base = 'http://encuestas_finales.exactas.uba.ar/'
-subjects = set()
+subjects = []
+profesores = []
 
 
 def procesarPeriodos():
@@ -20,8 +21,8 @@ def procesarPeriodos():
         href = td.a.attrs["href"]
         processCuat(base+href)
 
-
 def processCuat(url):
+    driver = webdriver.Chrome()
     cuatid = int(re.search(r'\d+', url).group())
     driver = webdriver.Chrome()
     driver.get(url)
@@ -39,22 +40,58 @@ def processCuat(url):
                 try:
                     subjectsDiv = driver.find_element_by_id('list_mu%d' % cuatid)
                     subjectElements = subjectsDiv.find_elements_by_tag_name('li')
-                    for subject in subjectElements:
+                    for i in range(len(subjectElements)):
+                        subjectsDiv = driver.find_element_by_id('list_mu%d' % cuatid)
+                        subjectElements = subjectsDiv.find_elements_by_tag_name('li')
+                        subject = subjectElements[i]
                         unicodeSubjectName = subject.find_element_by_tag_name('a').text
-                        subjectName = unicodedata.normalize('NFKD', unicodeSubjectName).encode('ascii','ignore')
-                        subjects.add(subjectName)
+                        subjectName = unicodedata.normalize('NFKD', unicodeSubjectName).encode('ascii','ignore').decode('ascii')
+                        subject.find_element_by_tag_name('a').click()
+                        subjectProfessors = getSubjectProfessors(driver)
+                        driver.back()
+                        subjects.append({"Name": subjectName, "Professors": subjectProfessors})
                     error = False
                 except:
                     pass
     else:
-        for subject in subjectsDiv.find_elements_by_tag_name('li'):
+        for i in range(len(subjectsDiv.find_elements_by_tag_name('li'))):
+            subjectsDiv = driver.find_element_by_id('list_mu%d' % cuatid)
+            subject = subjectsDiv.find_elements_by_tag_name('li')[i]
             unicodeSubjectName = subject.find_element_by_tag_name('a').text
-            subjectName = unicodedata.normalize('NFKD', unicodeSubjectName).encode('ascii','ignore')
-            subjects.add(subjectName)
+            subjectName = unicodedata.normalize('NFKD', unicodeSubjectName).encode('ascii','ignore').decode('ascii')
+            subject.find_element_by_tag_name('a').click()
+            subjectProfessors = getSubjectProfessors(driver)
+            driver.back()
+            subjects.append({"Name": subjectName, "Professors": subjectProfessors})
     driver.close()
 
+def getSubjectProfessors(driver):
+    subjectProfessors = set()
+    for turno in driver.find_elements_by_tag_name('tr'):
+        container = turno.find_elements_by_css_selector('td.rg')
+        if container:
+            container = container[0]
+        else:
+            continue
+        divs = container.find_elements_by_tag_name('div')
+        for profesor in divs:
+            try:
+                professorName = profesor.find_element_by_tag_name('a').text
+            except:
+                continue
+            if professorName in profesores:
+                id = profesores.index(professorName)
+            else:
+                profesores.append(professorName)
+                id = len(profesores) - 1
+            subjectProfessors.add(id)
+    return list(subjectProfessors)
 
 if __name__ == '__main__':
     procesarPeriodos()
     file = open('materias.json', 'w+')
     file.write(json.dumps(list(subjects), sort_keys=True, indent=4, separators=(',', ': ')))
+    file.close()
+    file = open('profesores.json', 'w+')
+    file.write(json.dumps(list(profesores), sort_keys=True, indent=4, separators=(',', ': ')))
+    file.close()

@@ -1,0 +1,53 @@
+[
+    {
+        "Codigo": "94.27",
+        "Facultad": "ITBA",
+        "Nombre": "Administraci\u00f3n de Recursos Humanos",
+        "Profesores": [
+            {
+                "Nombre": "Pedr\u00f3, Cecilia Ang\u00e9lica"
+            },
+            {
+                "Nombre": "Feld, Guido Mariano"
+            },
+            {
+                "Nombre": "Gonz\u00e1lez Gainza, Maria Florencia"
+            }
+        ]
+    },
+    {
+        "Codigo": "93.58",
+        "Facultad": "ITBA",
+        "Nombre": "\u00c1lgebra",
+        "Profesores": [
+            {
+                "Nombre": "Mancilla Aguilar, Jose Luis"
+            },
+            {
+                "Nombre": "Noni, Maria Laura"
+            },
+            {
+                "Nombre": "Fages, Luciano Rodolfo"
+            },
+            {
+                "Nombre": "Soria Sasias, Adri\u00e1n Marcelo"
+            }
+        ]
+    },
+    {
+        "Codigo": "22.08",
+        "Facultad": "ITBA",
+        "Nombre": "Algoritmos y Estructura de Datos",
+        "Profesores": [
+            {
+                "Nombre": "Jacoby, Daniel Andres"
+            },
+            {
+                "Nombre": "Perez Moreno, Agustin Matias"
+            },
+            {
+                "Nombre": "Ressl, Marc S."
+            }
+        ]
+    }
+]

@@ -7,43 +7,11 @@ from selenium.webdriver.support import expected_conditions as EC
 import unicodedata
 import json
 import time
+from common import *
 import numpy as np
 
 
 base = 'https://sga.itba.edu.ar'
-subjets = set()
-
-
-class Professor:
-    def __init__(self, nombre):
-        self.nombre = nombre
-
-    def __iter__(self):
-        yield "Nombre", self.nombre
-
-
-class Subject:
-    def __init__(self, codigo, nombre, facultad):
-        self.nombre = nombre.encode('utf-8')
-        self.codigo = codigo.encode('utf-8')
-        self.facultad = facultad.encode('utf-8')
-        self.profesores = []
-
-    def addProfesor(self, profesor):
-        self.profesores.append(profesor)
-
-    def __iter__(self):
-        yield 'Codigo', self.codigo
-        yield 'Nombre', self.nombre
-        yield 'Facultad', self.facultad
-        yield 'Profesores', [dict(prof) for prof in self.profesores]
-
-
-# def testDict():
-#     h1 = Subject("Matemática", "ITBA")
-#     h1.addProfesor(Professor("Uria"))
-#
-#     print(dict(h1))
 
 
 def getMateriasPage(driver):
@@ -67,16 +35,16 @@ def main():
     driver = webdriver.Chrome()
     driver.get(base)
 
-    i = input("Press enter to begin")
+    form = driver.find_element_by_id('id1')
+    nameInput = form.find_element_by_css_selector('input[name=user]')
+    passwordInput = form.find_element_by_css_selector('input[name=password]')
+    nameInput.send_keys(input("Ingrese el usuario: "))
+    passwordInput.send_keys(input("Ingrese la password: "))
 
-    driver.find_element_by_id("id1").submit()
-
-    i = input("Press enter to begin")
+    form.submit()
 
     driver.find_element_by_link_text('Académica').click()
     driver.find_element_by_link_text('Cursos').click()
-
-    materias = []
 
     for number in range(1, 2):
         if number != 1:
@@ -86,10 +54,11 @@ def main():
         for current in range(3):#len(mat_list)):
             time.sleep(.01)
             try:
+                codigo = getMateriasPage(driver)[current].find_elements_by_tag_name("td")[0].text
                 materia = Subject(
-                    getMateriasPage(driver)[current].find_elements_by_tag_name("td")[0].text,
-                    getMateriasPage(driver)[current].find_elements_by_tag_name("td")[1].text,
-                    "ITBA"
+                    getMateriasPage(driver)[current].find_elements_by_tag_name("td")[1].text + "-" + codigo,
+                    "Instituto Tecnológico de Buenos Aires",
+                    "itba"
                 )
 
                 getMateriasPage(driver)[current].find_elements_by_tag_name("td")[9]\
@@ -99,28 +68,21 @@ def main():
                 profList = driver \
                     .find_element_by_class_name("tab-panel") \
                     .find_elements_by_tag_name("ul")
-                print(profList)
 
                 for prof in profList:
                     ProfName = prof.find_element_by_class_name("fontSize14").text
 
-                    materia.addProfesor(Professor(ProfName))
+                    materia.addProfesor(ProfName)
 
-                materias.append(dict(materia))
-            except:
+                subjects.append(dict(materia))
+            except Exception as e:
+                print(e)
                 print("Error en ", number,"-", current)
 
             driver.back()
 
-    file = open("materiasItba.json", "w+", encoding='utf8')
-    file.write(json.dumps(materias))
-
-
-    #
-    # print("nombre = ",name)
-
-    i = input("Press enter to begin")
-
 
 if __name__ == '__main__':
+    cargarData()
     main()
+    guardarData()
