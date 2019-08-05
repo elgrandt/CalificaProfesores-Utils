@@ -4,6 +4,8 @@ from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.keys import Keys
+
 import unicodedata
 import json
 import time
@@ -16,20 +18,21 @@ base = 'https://sga.itba.edu.ar'
 
 def getMateriasPage(driver):
     even_mat = np.array(
-        driver
-            .find_element_by_tag_name("tbody")
-            .find_elements_by_class_name("even")
+        driver.
+            find_element_by_tag_name("tbody").
+            find_elements_by_class_name("even")
     )
 
     odd_mat = np.array(
-        driver
-            .find_element_by_tag_name("tbody")
-            .find_elements_by_class_name("odd")
+        driver.
+            find_element_by_tag_name("tbody").
+            find_elements_by_class_name("odd")
     )
 
     mat_list = np.concatenate((even_mat, odd_mat))
 
     return mat_list
+
 
 def main():
     driver = webdriver.Chrome()
@@ -45,44 +48,54 @@ def main():
 
     driver.find_element_by_link_text('Académica').click()
     driver.find_element_by_link_text('Cursos').click()
+    driver.find_element_by_class_name('filters-tr')\
+    .find_elements_by_class_name("filter-td")[4]\
+    .find_elements_by_tag_name("option")[0].click()
+
+    driver.find_element_by_class_name("filters-tr")\
+    .find_elements_by_class_name("filter-td")[0].click()
+
+    driver.find_element_by_class_name("filters-tr")\
+    .find_elements_by_class_name("filter-td")[0]\
+    .find_element_by_tag_name("input").send_keys(Keys.ENTER)
 
     for number in range(1, 2):
         if number != 1:
             driver.find_element_by_link_text("%d" % number).click()
 
         mat_list = getMateriasPage(driver)
-        for current in range(3):#len(mat_list)):
+        for current in range(3):
             time.sleep(.01)
-            try:
-                codigo = getMateriasPage(driver)[current].find_elements_by_tag_name("td")[0].text
-                materia = Subject(
-                    getMateriasPage(driver)[current].find_elements_by_tag_name("td")[1].text + "-" + codigo,
-                    "Instituto Tecnológico de Buenos Aires",
-                    "itba"
-                )
+            #try:
+            codigo = getMateriasPage(driver)[current].find_elements_by_tag_name("td")[0].text
+            materia = Subject(
+                getMateriasPage(driver)[current].find_elements_by_tag_name("td")[1].text + " - " + codigo,
+                "Instituto Tecnológico de Buenos Aires",
+                "ITBA",
+                "1"
+            )
 
-                getMateriasPage(driver)[current].find_elements_by_tag_name("td")[9]\
-                .find_element_by_tag_name("span")\
-                .find_element_by_tag_name("span").click()
+            getMateriasPage(driver)[current].find_elements_by_tag_name("td")[11]\
+            .find_element_by_tag_name("span")\
+            .find_element_by_tag_name("span").click()
 
-                profList = driver \
-                    .find_element_by_class_name("tab-panel") \
-                    .find_elements_by_tag_name("ul")
+            profList = driver \
+                .find_element_by_class_name("tab-panel") \
+                .find_elements_by_tag_name("ul")
 
-                for prof in profList:
-                    ProfName = prof.find_element_by_class_name("fontSize14").text
+            for prof in profList:
+                ProfName = prof.find_element_by_class_name("fontSize14").text
+                materia.addProfesor(ProfName)
 
-                    materia.addProfesor(ProfName)
-
-                subjects.append(dict(materia))
-            except Exception as e:
-                print(e)
-                print("Error en ", number,"-", current)
+            subjects[materia.name] = dict(materia)
+            # except Exception as e:
+            #     print(e)
+            #     print("Error en ", number,"-", current)
 
             driver.back()
 
 
 if __name__ == '__main__':
-    cargarData()
+    #cargarData()
     main()
-    guardarData()
+    guardarData("materias.json")
